@@ -492,6 +492,9 @@ class CartesianPoint : public vector<mstreal> {
     mstreal getY() const { return (*this)[1]; }
     mstreal getZ() const { return (*this)[2]; }
 
+    void convertToSphericalCoordinates(mstreal& radius, mstreal& polarAngle, mstreal& azimuthalAngle); // physics (ISO 80000-2:2019 convention), returns radians
+    void setPositionBySphericalCoordinates(mstreal radius, mstreal polarAngle, mstreal azimuthalAngle); // physics (ISO 80000-2:2019 convention), angles in radians
+
     mstreal distance(const CartesianPoint& another) const;
     mstreal distance(const CartesianPoint* another) const { return distance(*another); }
     mstreal distancenc(const CartesianPoint& another) const; // no size check (for speed)

@@ -193,7 +193,7 @@ void Structure::readPDB(istream& is, string options) {
     }
     // many PDB files in the Protein Data Bank call the delta carbon of isoleucine CD1, but
     // the convention in basically all MM packages is to call it CD, since there is only one
-    if (fixIleCD1 && atomname.compare("CD1") == 0) atomname = "CD";
+    if (fixIleCD1 && resname.compare("ILE") && atomname.compare("CD1") == 0) atomname = "CD";
 
     // if necessary, make a new residue
     bool reallyNewAtom = true; // is this a truely new atom, as opposed to an alternative position?
@@ -1659,6 +1659,20 @@ mstreal CartesianPoint::dot(const CartesianPoint& other) const {
   }
 
   return d;
+}
+
+void CartesianPoint::convertToSphericalCoordinates(mstreal& radius, mstreal& polarAngle, mstreal& azimuthalAngle) {
+  if (this->size() != 3) MstUtils::error("Can only convert 3D vector to spherical coordinates","CartesianPoint::convertToSphericalCoordinates");
+  radius = this->norm();
+  polarAngle = acos((*this)[2]/radius);
+  azimuthalAngle = fmod(atan2((*this)[1],(*this)[0]) + 2*M_PI, 2*M_PI);
+}
+
+void CartesianPoint::setPositionBySphericalCoordinates(mstreal radius, mstreal polarAngle, mstreal azimuthalAngle) {
+  this->resize(3, 0);
+  (*this)[0] = radius*cos(azimuthalAngle)*sin(polarAngle);
+  (*this)[1] = radius*sin(azimuthalAngle)*sin(polarAngle);
+  (*this)[2] = radius*cos(polarAngle);
 }
 
 mstreal CartesianPoint::distance(const CartesianPoint& another) const {
@@ -3319,7 +3333,7 @@ vector<vector<int>> Clusterer::greedyCluster(const vector<vector<Atom*>>& units,
   for (int i = 0; i < units.size(); i++) remIndices.insert(i);
   if (remIndices.size() <= Nmax) return Clusterer::greedyClusterBruteForce(units, remIndices, rmsdCut);
   
-  cout << "There are " << units.size() << " total points to cluster, will continue until " << floor(units.size()*coverage) << " (" << coverage << ") or " << maxClusters << "are covered" << endl;
+  cout << "There are " << units.size() << " total points to cluster, will continue until " << floor(units.size()*coverage) << " (" << coverage << ") or " << maxClusters << " are covered" << endl;
 
   // create some dummy storage vectors
   int L = units[0].size();
@@ -3331,7 +3345,7 @@ vector<vector<int>> Clusterer::greedyCluster(const vector<vector<Atom*>>& units,
   int numToLeave = total * (1 - coverage);
 
   // iterate to find a new cluster each time
-  while ((remIndices.size() > Nmax) && (remIndices.size() > numToLeave) && (maxClusters > 0) && (clusters.size() < maxClusters)) {
+  while ((remIndices.size() > Nmax) && (remIndices.size() > numToLeave) && ((maxClusters <= 0) || ((maxClusters > 0) && (clusters.size() < maxClusters)))) {
     // sub-sample Nmax elements
     set<int> subSample = Clusterer::randomSubsample(remIndices, Nmax);
 
@@ -3374,7 +3388,7 @@ vector<vector<int>> Clusterer::greedyCluster(const vector<vector<Atom*>>& units,
     int remainingClusters = maxClusters - clusters.size();
     vector<vector<int>> remClusters = greedyClusterBruteForce(units, remIndices, rmsdCut, remainingClusters);
     clusters.insert(clusters.end(), remClusters.begin(), remClusters.end());
-  } else if ((maxClusters <= 0) && ((remIndices.size() - numToLeave) >= 1)) {
+  } else if ((maxClusters <= 0) && (remIndices.size() > numToLeave)) {
     set<int> indsToCluster;
     auto curInd = remIndices.begin();
     for (int i = 0; i < (remIndices.size() - numToLeave); i++) {
