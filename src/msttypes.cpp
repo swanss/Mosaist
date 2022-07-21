@@ -1714,6 +1714,11 @@ mstreal CartesianPoint::distance2nc(const CartesianPoint& another) const {
   return d;
 }
 
+mstreal CartesianPoint::cosineAngle(const CartesianPoint& another) const {
+  if (this->size() != another.size()) MstUtils::error("point dimensions disagree", "CartesianPoint::cosineAngle");
+  return (*this).dot(another) / ((*this).norm()* another.norm());
+}
+
 /* --------- CartesianGeometry --------- */
 mstreal CartesianGeometry::dihedral(const CartesianPoint & _p1, const CartesianPoint & _p2, const CartesianPoint & _p3, const CartesianPoint & _p4, bool radians) {
   CartesianPoint AB = _p1 - _p2;
@@ -3119,6 +3124,23 @@ ProximitySearch::ProximitySearch(const AtomPointerVector& _atoms, mstreal _chara
   }
 }
 
+ProximitySearch::ProximitySearch(const vector<CartesianPoint>& _points, mstreal _characteristicDistance, bool _addPoints, vector<int>* tags, mstreal pad) {
+  calculateExtent(_points);
+  if (xlo == xhi) { xlo -= _characteristicDistance/2; xhi += _characteristicDistance/2; }
+  if (ylo == yhi) { ylo -= _characteristicDistance/2; yhi += _characteristicDistance/2; }
+  if (zlo == zhi) { zlo -= _characteristicDistance/2; zhi += _characteristicDistance/2; }
+  xlo -= pad; ylo -= pad; zlo -= pad;
+  xhi += pad; yhi += pad; zhi += pad;
+  int _N = int(ceil(max(max((xhi - xlo), (yhi - ylo)), (zhi - zlo))/_characteristicDistance));
+  reinitBuckets(_N);
+  setBinWidths();
+  if (_addPoints) {
+    for (int i = 0; i < _points.size(); i++) {
+      addPoint(_points[i], (tags == NULL) ? i : (*tags)[i]);
+    }
+  }
+}
+
 ProximitySearch::ProximitySearch(const ProximitySearch& ps) {
   *this = ps;
 }
@@ -3165,6 +3187,21 @@ void ProximitySearch::calculateExtent(const AtomPointerVector& _atoms, mstreal& 
     if (_xhi < _atoms[i]->getX()) _xhi = _atoms[i]->getX();
     if (_yhi < _atoms[i]->getY()) _yhi = _atoms[i]->getY();
     if (_zhi < _atoms[i]->getZ()) _zhi = _atoms[i]->getZ();
+  }
+}
+
+void ProximitySearch::calculateExtent(const vector<CartesianPoint>& _points, mstreal& _xlo, mstreal& _ylo, mstreal& _zlo, mstreal& _xhi, mstreal& _yhi, mstreal& _zhi) {
+  if (_points.size() == 0) { cout << "Error in ProximitySearch::calculateExtent() -- empty cartesian point vector passed!\n"; exit(-1); }
+  _xlo = _xhi = _points[0].getX();
+  _ylo = _yhi = _points[0].getY();
+  _zlo = _zhi = _points[0].getZ();
+  for (int i = 0; i < _points.size(); i++) {
+    if (_xlo > _points[i].getX()) _xlo = _points[i].getX();
+    if (_ylo > _points[i].getY()) _ylo = _points[i].getY();
+    if (_zlo > _points[i].getZ()) _zlo = _points[i].getZ();
+    if (_xhi < _points[i].getX()) _xhi = _points[i].getX();
+    if (_yhi < _points[i].getY()) _yhi = _points[i].getY();
+    if (_zhi < _points[i].getZ()) _zhi = _points[i].getZ();
   }
 }
 

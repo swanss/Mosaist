@@ -503,6 +503,7 @@ class CartesianPoint : public vector<mstreal> {
     mstreal distance2(const CartesianPoint* another) const { return distance2(*another); }
     mstreal distance2nc(const CartesianPoint& another) const; // no size check (for speed)
     mstreal distance2nc(const CartesianPoint* another) const { return distance2nc(*another); } // no size check (for speed)
+    mstreal cosineAngle(const CartesianPoint& another) const;
 
     friend ostream & operator<<(ostream &_os, const CartesianPoint& _p) {
       for (int i = 0; i < _p.size(); i++) {
@@ -735,6 +736,7 @@ class ProximitySearch {
     ProximitySearch(mstreal _xlo, mstreal _ylo, mstreal _zlo, mstreal _xhi, mstreal _yhi, mstreal _zhi, int _N = 20);
     ProximitySearch(const AtomPointerVector& _atoms, int _N, bool _addAtoms = true, vector<int>* tags = NULL, mstreal pad = 0);
     ProximitySearch(const AtomPointerVector& _atoms, mstreal _characteristicDistance, bool _addAtoms = true, vector<int>* tags = NULL, mstreal pad = 0);
+    ProximitySearch(const vector<CartesianPoint>& _points, mstreal _characteristicDistance, bool _addPoints = true, vector<int>* tags = NULL, mstreal pad = 0);
     ~ProximitySearch();
     ProximitySearch& operator=(const ProximitySearch& ps);
 
@@ -767,6 +769,7 @@ class ProximitySearch {
     mstreal gridSpacingZ() { return (zhi - zlo)/N; }
     static void calculateExtent(const AtomPointerVector& _atoms, mstreal& _xlo, mstreal& _ylo, mstreal& _zlo, mstreal& _xhi, mstreal& _yhi, mstreal& _zhi);
     static void calculateExtent(const Structure& S, mstreal& _xlo, mstreal& _ylo, mstreal& _zlo, mstreal& _xhi, mstreal& _yhi, mstreal& _zhi);
+    static void calculateExtent(const vector<CartesianPoint>& points, mstreal& _xlo, mstreal& _ylo, mstreal& _zlo, mstreal& _xhi, mstreal& _yhi, mstreal& _zhi);
 
     bool pointsWithin(const CartesianPoint& c, mstreal dmin, mstreal dmax, vector<int>* list = NULL, bool byTag = false);
     vector<int> getPointsWithin(const CartesianPoint& c, mstreal dmin, mstreal dmax, bool byTag = false);
@@ -781,6 +784,7 @@ class ProximitySearch {
   protected:
     void setBinWidths();
     void calculateExtent(const AtomPointerVector& _atoms) { ProximitySearch::calculateExtent(_atoms, xlo, ylo, zlo, xhi, yhi, zhi); }
+    void calculateExtent(const vector<CartesianPoint>& _points) { ProximitySearch::calculateExtent(_points, xlo, ylo, zlo, xhi, yhi, zhi); }
 
   private:
     int N; // dimension of bucket list is N x N x N
