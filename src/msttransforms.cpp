@@ -49,7 +49,7 @@ void Frame::setO(const CartesianPoint& _O) {
 }
 
 void Frame::constructFrame(const CartesianPoint& _O, const CartesianPoint& _X, const CartesianPoint& _Y, const CartesianPoint& _Z) {
-  MstUtils::assert((_O.size() == 3) && (_X.size() == 3) && (_Y.size() == 3) && (_Z.size() == 3),
+  MstUtils::assertCond((_O.size() == 3) && (_X.size() == 3) && (_Y.size() == 3) && (_Z.size() == 3),
       "Frame class currently supports only 3D coordinate frames; specified origin and axes must be 3D vectors", "Frame::Frame(CartesianPoint&, CartesianPoint&, CartesianPoint&, CartesianPoint&)");
   mstreal xn = _X.norm(); mstreal yn = _Y.norm(); mstreal zn = _Z.norm();
   O[0] = _O[0]; O[1] = _O[1]; O[2] = _O[2];
