@@ -193,7 +193,7 @@ void Structure::readPDB(istream& is, string options) {
     }
     // many PDB files in the Protein Data Bank call the delta carbon of isoleucine CD1, but
     // the convention in basically all MM packages is to call it CD, since there is only one
-    if (fixIleCD1 && resname.compare("ILE") && atomname.compare("CD1") == 0) atomname = "CD";
+    if (fixIleCD1 && (resname.compare("ILE") == 0) && (atomname.compare("CD1") == 0)) atomname = "CD";
 
     // if necessary, make a new residue
     bool reallyNewAtom = true; // is this a truely new atom, as opposed to an alternative position?
@@ -258,7 +258,6 @@ void Structure::writePDB(ostream& ofs, string options) const {
   if (options.find("CHARMM") != string::npos) charmmFormat = true;
   if (options.find("CHARMM19") != string::npos) charmm19Format = true;
   if (options.find("CHARMM22") != string::npos) charmm22Format = true;
-  if (options.find("ALLOW ILE CD1") != string::npos) fixIleCD1 = false;
   if (options.find("ALLOW ILE CD1") != string::npos) fixIleCD1 = false;
   if (options.find("RENUMBER") != string::npos) renumber = true;
   if (options.find("NOEND") != string::npos) noend = true;
